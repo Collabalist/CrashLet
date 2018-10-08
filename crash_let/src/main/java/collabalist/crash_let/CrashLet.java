@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Build;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.List;
 public class CrashLet {
 
     Application application;
+    boolean showStackTrace = false;
 
     CrashLet(Application application) {
         this.application = application;
@@ -35,6 +37,10 @@ public class CrashLet {
         return this;
     }
 
+    public CrashLet showStackTrace(boolean show) {
+        this.showStackTrace = show;
+        return this;
+    }
 
     public void init() {
         if (recipients == null)
@@ -68,9 +74,35 @@ public class CrashLet {
                         throwable.getLocalizedMessage(),
                         factsBuilder.toString());
                 crash.setRecipients(recipients);
-                application.startActivity(new Intent(application, ReportActivity.class)
-                        .putExtra("crash", crash)
-                        .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                if (showStackTrace) {
+                    application.startActivity(new Intent(application, ReportActivity.class)
+                            .putExtra("crash", crash)
+                            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                } else {
+                    Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+                    PackageManager pm = application.getPackageManager();
+                    List<ResolveInfo> matches = pm.queryIntentActivities(intent, 0);
+                    ResolveInfo best = null;
+                    for (ResolveInfo info : matches)
+                        if (info.activityInfo.packageName.endsWith(".gm") ||
+                                info.activityInfo.name.toLowerCase().contains("gmail"))
+                            best = info;
+                    if (best != null) {
+                        intent.setClassName(best.activityInfo.packageName, best.activityInfo.name);
+                        intent.setType("text/plain");
+                    } else {
+                        intent.setType("message/rfc822");
+                    }
+                    if (!crash.getRecipients().isEmpty()) {
+                        String[] res = new String[crash.getRecipients().size()];
+                        res = crash.getRecipients().toArray(res);
+                        intent.putExtra(Intent.EXTRA_EMAIL, res);
+                    }
+                    intent.putExtra(Intent.EXTRA_TEXT, Utils.getCrashBody(crash));
+                    intent.putExtra(Intent.EXTRA_SUBJECT, Utils.getApplicationName(application) + " Crash Report");
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    application.startActivity(intent);
+                }
                 android.os.Process.killProcess(android.os.Process.myPid());
                 System.exit(10);
             }

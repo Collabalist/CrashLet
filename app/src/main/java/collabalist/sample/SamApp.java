@@ -15,6 +15,7 @@ public class SamApp extends Application {
         CrashLet.with(this)
                 .addRecipient("deepak.mylist@gmail.com")
                 .addRecipient("collbalist@gmail.com")
+                .showStackTrace(true)
                 .init();
     }
 }
