@@ -7,7 +7,7 @@
 
 ![Crash Report](https://raw.githubusercontent.com/Collabalist/CrashLet/master/app/src/screen_1.png)
 
-### Use With RetroLet
+### Use With [RetroLet](http://github.com/collabalist/retrolet)
 ![Crash Report](https://raw.githubusercontent.com/Collabalist/CrashLet/master/app/src/image_2.png)
 
 ## Implementation
