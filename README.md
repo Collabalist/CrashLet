@@ -22,7 +22,7 @@ In your **build.gradle**
 	}
 ````
 
-In your application's **build.gradle**
+In your application > **build.gradle**
     
 ````groovy
     dependencies {
